@@ -41,6 +41,7 @@ public class PriceClient {
                     )
                     .retrieve().bodyToMono(Price.class).block();
 
+            assert price != null;
             return String.format("%s %s", price.getCurrency(), price.getPrice());
 
         } catch (Exception e) {

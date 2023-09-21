@@ -1,10 +1,10 @@
 package com.udacity.vehicles.api;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -96,7 +96,13 @@ public class CarControllerTest {
          *   the whole list of vehicles. This should utilize the car from `getCar()`
          *   below (the vehicle will be the first in the list).
          */
-
+        Car car = getCar();
+        mvc.perform(
+                        get(new URI("/cars"))
+                                .content(json.write(car).getJson())
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -109,7 +115,37 @@ public class CarControllerTest {
          * TODO: Add a test to check that the `get` method works by calling
          *   a vehicle by ID. This should utilize the car from `getCar()` below.
          */
+        mvc.perform(
+                get(new URI("/cars/1"))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk());
+
     }
+
+    /**
+     * Tests the update operation .
+     * @throws Exception if the read operation for a single car fails
+     */
+    @Test
+    public void updateCar() throws Exception {
+        Car car = getCar();
+        car.getDetails().setModel("BMW M5 Competition");
+
+        given(carService.save(any())).willReturn(car);
+
+        mvc.perform(
+                put(new URI("/cars/1"))
+                        .content(json.write(car).getJson())
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.condition", is(Condition.USED.toString())))
+                .andExpect(jsonPath("$.details.body", is("sedan")))
+                .andExpect(jsonPath("$.details.model", is("BMW M5 Competition")));
+    }
+
 
     /**
      * Tests the deletion of a single car by ID.
@@ -122,6 +158,11 @@ public class CarControllerTest {
          *   when the `delete` method is called from the Car Controller. This
          *   should utilize the car from `getCar()` below.
          */
+        mvc.perform(
+                        delete(new URI("/cars/1"))
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isNoContent());
     }
 
     /**
